@@ -127,13 +127,7 @@ fn buildNzsl(b: *Build, target: Build.ResolvedTarget, optimize: std.builtin.Opti
     lib.addSystemIncludePath(ordered_map.path("include"));
     lib.addSystemIncludePath(fast_float.path("include"));
 
-    // const includeFlag = std.fmt.allocPrint(b.allocator, "\"-isystem {s}\"", .{upstream.path("include").getPath(b)}) catch unreachable;
-    // defer b.allocator.free(includeFlag);
-
     const flags = [_][]const u8{
-        // includeFlag
-        //"-I=" ++ .upstream.path(),
-
         if (shared)
         "-DCNZSL_DYNAMIC" else "-DCNZSL_STATIC",
         if (shared) "-DNZSL_DYNAMIC" else "-DNZSL_STATIC",
