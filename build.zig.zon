@@ -16,8 +16,9 @@
     // internet connectivity.
     .dependencies = .{
         .nzsl_source = .{
-            .url = "https://github.com/REMqb/ShaderLang/archive/2a939b32e1dfd318964a6f03d442c565d51815b9.tar.gz",
-            .hash = "1220bb61ec2a696eeaac96d3d419bcbe91979706c14f76a4ca696c06e28f9b4f7fc0",
+            .url = "https://github.com/NazaraEngine/ShaderLang/archive/97dfc07923572cb26aa2db485df6bd837dea79bb.tar.gz",
+            .hash = "12203c913b5cbccbb4b6b11d7e5730f81ed0737553fe3fc30995d059bf859101933f",
+            .lazy = true,
         },
         .NazaraUtils = .{
             .url = "https://github.com/NazaraEngine/NazaraUtils/archive/cbdb331a9610fa52f51e7c86576cc9e2e7235691.tar.gz",

@@ -11,17 +11,14 @@ pub fn main() !void {
     const state = nzsl.WriterStates.create();
     defer state.release();
 
-    state.setOption(nzsl.hashOption("foo"), 42);
-    state.setOption(nzsl.hashOption("foo"), 42.3);
-    state.setOption(nzsl.hashOption("foo"), true);
-    state.setOption(nzsl.hashOption("foo"), .{true, false});
-    state.setOption(nzsl.hashOption("foo"), .{12, 24});
-    state.setOption(nzsl.hashOption("foo"), .{12.4, 24});
+    state.setDebugLevel(.full);
 
     const mappings = nzsl.GlslBindingMapping.create();
     defer mappings.release();
 
-    const output = try glslWriter.generate(mandelbrotModule, mappings);
+    const output = try glslWriter.generate(mandelbrotModule, mappings, state);
     defer output.release();
+
+    std.log.debug("Generated code: \n{s}", .{ output.getCode() });
 
 }

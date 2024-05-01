@@ -92,7 +92,6 @@ pub fn build(b: *Build) void {
         run_step.dependOn(&run_cmd.step);
     }
 
-
     docs.root_module.addOptions("config", config);
     docs.root_module.addImport("nzslzig", nzslzig);
 
