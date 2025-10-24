@@ -8,7 +8,6 @@
             .url = "git+https://github.com/NazaraEngine/ShaderLang?ref=v1.1.1#6d06572eaa664b1655f57522edf1e8c88292be0a",
             .hash = "N-V-__8AAPOQIwAwA5SQCrbVxrBp5Q7YX--899XJIjFv6rZn",
             .lazy = true,
-            .lazy = true,
         },
         .NazaraUtils = .{
             .url = "git+https://github.com/NazaraEngine/NazaraUtils?ref=v1.0.0#d2f5d902ed9ac2bc8e26a015b1ff02edc5e3b550",
@@ -34,6 +33,10 @@
             .url = "git+https://github.com/fastfloat/fast_float?ref=v8.1.0#88b1e5321c6918cbe091afd76728296290668403",
             .hash = "N-V-__8AABEwCAAXomDLtLslEEK5zzy4Yy0b2RC-WS-DgdnU",
             .lazy = true,
+        },
+        .lz4 = .{
+            .url = "git+https://github.com/lz4/lz4?ref=v1.10.0#ebb370ca83af193212df4dcbadcc5d87bc0de2f0",
+            .hash = "N-V-__8AAJqFGQCAYVWzZWCL3-wqB2UCxRqBJ68dgAtVEtPu",
         },
     },
     .paths = .{

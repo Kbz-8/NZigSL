@@ -5,26 +5,14 @@ const Step = std.Build.Step;
 
 pub const Libsource = enum { source, prebuild };
 
-// based on ziglua's build.zig
-
-// Although this function looks imperative, note that its job is to
-// declaratively construct a build graph that will be executed by an external
-// runner.
-pub fn build(b: *Build) void {
-    // Remove the default install and uninstall steps
+pub fn build(b: *Build) !void {
     b.top_level_steps = .{};
 
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const libsource = b.option(Libsource, "libsource", "Use prebuild or compile from sources") orelse .source;
     const shared = b.option(bool, "shared", "Build shared library instead of static") orelse false;
 
-    if (libsource == .prebuild) {
-        std.debug.panic("Prebuild aren't available for now", .{});
-    }
-
-    // Zig module
     const nzigsl = b.addModule("nzigsl", .{
         .target = target,
         .optimize = optimize,
@@ -37,34 +25,34 @@ pub fn build(b: *Build) void {
         .linkage = .static,
     });
 
-    // Expose build configuration to the nzigsl module
+    const mod_tests = b.addTest(.{
+        .root_module = nzigsl,
+    });
+
     const config = b.addOptions();
-    config.addOption(Libsource, "libsource", libsource);
     nzigsl.addOptions("config", config);
 
     nzsldep: {
-        const upstream = b.lazyDependency(if (libsource == .source) "nzsl" else break :nzsldep, .{}) orelse break :nzsldep;
+        const upstream = b.lazyDependency("nzsl", .{}) orelse break :nzsldep;
         const nazaraUtils = b.lazyDependency("NazaraUtils", .{}) orelse break :nzsldep;
         const frozen = b.lazyDependency("frozen", .{}) orelse break :nzsldep;
         const fmt = b.lazyDependency("fmt", .{}) orelse break :nzsldep;
         const ordered_map = b.lazyDependency("ordered_map", .{}) orelse break :nzsldep;
         const fast_float = b.lazyDependency("fast_float", .{}) orelse break :nzsldep;
+        const lz4 = b.lazyDependency("lz4", .{}) orelse break :nzsldep;
 
-        const lib = switch (libsource) {
-            .source => buildNzsl(b, target, optimize, upstream, nazaraUtils, frozen, fmt, ordered_map, fast_float, shared),
-            else => unreachable,
-        };
+        const lib = try buildNzsl(b, target, optimize, upstream, nazaraUtils, frozen, fmt, ordered_map, fast_float, lz4, shared);
 
-        // Expose the Nzsl artifact
         b.installArtifact(lib);
-
-        //nzigsl.addSystemIncludePath(upstream.path("include"));
 
         nzigsl.linkLibrary(lib);
         docs.linkLibrary(lib);
     }
 
-    // Examples
+    const run_tests = b.addRunArtifact(mod_tests);
+    const test_step = b.step("test", "Run tests");
+    test_step.dependOn(&run_tests.step);
+
     const examples = [_]struct { []const u8, []const u8 }{
         .{ "mandelbrot", "examples/mandelbrot.zig" },
     };
@@ -105,12 +93,25 @@ pub fn build(b: *Build) void {
     docs_step.dependOn(&install_docs.step);
 }
 
-fn buildNzsl(b: *Build, target: Build.ResolvedTarget, optimize: std.builtin.OptimizeMode, upstream: *Build.Dependency, nazaraUtils: *Build.Dependency, frozen: *Build.Dependency, ordered_map: *Build.Dependency, fast_float: *Build.Dependency, fmt: *Build.Dependency, shared: bool) *Step.Compile {
+fn buildNzsl(
+    b: *Build,
+    target: Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    upstream: *Build.Dependency,
+    nazaraUtils: *Build.Dependency,
+    frozen: *Build.Dependency,
+    fmt: *Build.Dependency,
+    ordered_map: *Build.Dependency,
+    fast_float: *Build.Dependency,
+    lz4: *Build.Dependency,
+    shared: bool,
+) !*Step.Compile {
     const lib = b.addLibrary(.{
         .name = "nzsl",
         .root_module = b.createModule(.{
             .target = target,
             .optimize = optimize,
+            .link_libcpp = true,
         }),
         .linkage = if (shared) .dynamic else .static,
     });
@@ -123,41 +124,32 @@ fn buildNzsl(b: *Build, target: Build.ResolvedTarget, optimize: std.builtin.Opti
     lib.addSystemIncludePath(fmt.path("include"));
     lib.addSystemIncludePath(ordered_map.path("include"));
     lib.addSystemIncludePath(fast_float.path("include"));
+    lib.addSystemIncludePath(lz4.path("include"));
 
     const flags = [_][]const u8{
-        if (shared)
-            "-DCNZSL_DYNAMIC"
-        else
-            "-DCNZSL_STATIC",
         if (shared) "-DNZSL_DYNAMIC" else "-DNZSL_STATIC",
+        if (shared) "-DCNZSL_DYNAMIC" else "-DCNZSL_STATIC",
         "-DCNZSL_BUILD",
         "-DNZSL_BUILD",
         "-DFMT_HEADER_ONLY",
-
-        // Define target-specific macro
-        //switch (target.result.os.tag) {
-        //.linux => "-DLUA_USE_LINUX",
-        //.macos => "-DLUA_USE_MACOSX",
-        //.windows => "-DLUA_USE_WINDOWS",
-        //else => "-DLUA_USE_POSIX",
-        //},
-
-        // Enable api check
-        // if (optimize == .Debug) "-DLUA_USE_APICHECK" else "",
     };
-
-    const nzsl_source_files = &nzsl_source_files_list;
 
     lib.addCSourceFiles(.{
         .root = .{ .dependency = .{
             .dependency = upstream,
             .sub_path = "",
         } },
-        .files = nzsl_source_files,
+        .files = &nzsl_source_files,
         .flags = &flags,
     });
 
-    lib.linkLibCpp();
+    lib.addCSourceFiles(.{
+        .root = .{ .dependency = .{
+            .dependency = lz4,
+            .sub_path = "lib",
+        } },
+        .files = &lz4_source_files,
+    });
 
     lib.installHeader(upstream.path("include/CNZSL/SpirvWriter.h"), "CNZSL/SpirvWriter.h");
     lib.installHeader(upstream.path("include/CNZSL/ShaderStageType.h"), "CNZSL/ShaderStageType.h");
@@ -175,7 +167,7 @@ fn buildNzsl(b: *Build, target: Build.ResolvedTarget, optimize: std.builtin.Opti
     return lib;
 }
 
-const nzsl_source_files_list = [_][]const u8{
+const nzsl_source_files = [_][]const u8{
     "src/NZSL/SpirvWriter.cpp",
     "src/NZSL/SpirV/SpirvSectionBase.cpp",
     "src/NZSL/SpirV/SpirvPrinter.cpp",
@@ -238,4 +230,12 @@ const nzsl_source_files_list = [_][]const u8{
     "src/CNZSL/GlslWriter.cpp",
     "src/CNZSL/FilesystemModuleResolver.cpp",
     "src/CNZSL/BackendParameters.cpp",
+};
+
+const lz4_source_files = [_][]const u8{
+    "lz4.c",
+    "lz4hc.c",
+    "lz4frame.c",
+    "xxhash.c",
+    "lz4file.c",
 };

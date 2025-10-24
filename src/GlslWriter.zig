@@ -80,25 +80,31 @@ pub const Output = struct {
         return code[0..size];
     }
 
-    pub fn getExplicitTextureBinding(self: InnerSelf, binding_name: [:0]const u8) i32 {
+    pub fn getExplicitTextureBinding(self: InnerSelf, binding_name: [:0]const u8) !i32 {
         const res = cnzsl.nzslGlslOutputGetExplicitTextureBinding(self.instance, binding_name);
-        return if (res != -1) res else error.BindingNameNotFound;
+        if (res == -1) {
+            return error.BindingNameNotFound;
+        }
+        return res;
     }
 
-    pub fn getExplicitUniformBlockBinding(self: InnerSelf, binding_name: [:0]const u8) i32 {
+    pub fn getExplicitUniformBlockBinding(self: InnerSelf, binding_name: [:0]const u8) !i32 {
         const res = cnzsl.nzslGlslOutputGetExplicitUniformBlockBinding(self.instance, binding_name);
-        return if (res != -1) res else error.BindingNameNotFound;
+        if (res == -1) {
+            return error.BindingNameNotFound;
+        }
+        return res;
     }
 
     pub fn usesDrawParameterBaseInstanceUniform(self: InnerSelf) bool {
-        return cnzsl.nzslGlslOutputGetUsesDrawParameterBaseInstanceUniform(self.instance);
+        return cnzsl.nzslGlslOutputGetUsesDrawParameterBaseInstanceUniform(self.instance) != 0;
     }
 
     pub fn usesDrawParameterBaseVertexUniform(self: InnerSelf) bool {
-        return cnzsl.nzslGlslOutputGetUsesDrawParameterBaseVertexUniform(self.instance);
+        return cnzsl.nzslGlslOutputGetUsesDrawParameterBaseVertexUniform(self.instance) != 0;
     }
 
     pub fn usesDrawParameterDrawIndexUniform(self: InnerSelf) bool {
-        return cnzsl.nzslGlslOutputGetUsesDrawParameterDrawIndexUniform(self.instance);
+        return cnzsl.nzslGlslOutputGetUsesDrawParameterDrawIndexUniform(self.instance) != 0;
     }
 };

@@ -31,3 +31,19 @@ pub const Module = @import("Module.zig");
 pub const parser = @import("parser.zig");
 pub const Serializer = @import("Serializer.zig");
 pub const SpirvWriter = @import("SpirvWriter.zig");
+
+test {
+    std.testing.refAllDeclsRecursive(@This());
+}
+
+test "hashOption" {
+    try std.testing.expect(try hashOption("test") == 2949673445);
+    try std.testing.expect(try hashOption("nzsl") == 1968067102);
+    try std.testing.expect(try hashOption("shaderlang") == 1855243988);
+    try std.testing.expect(try hashOption("a") == 3826002220);
+    try std.testing.expect(try hashOption("aa") == 1277494327);
+    try std.testing.expect(try hashOption("aaa") == 876991330);
+    try std.testing.expect(try hashOption("aaaa") == 1290481081);
+    try std.testing.expect(try hashOption("aaaaa") == 3996723976);
+    try std.testing.expect(try hashOption("aaaaaa") == 1828673099);
+}
