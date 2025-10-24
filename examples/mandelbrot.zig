@@ -1,24 +1,22 @@
-const std= @import("std");
-const nzsl = @import("nzslzig");
+const std = @import("std");
+const nzsl = @import("nzigsl");
 
 pub fn main() !void {
-    const mandelbrotModule = try nzsl.parseFromFile("examples/mandelbrot.nzsl");
-    defer mandelbrotModule.release();
+    const module = try nzsl.parser.parseFromFile("examples/mandelbrot.nzsl");
+    defer module.deinit();
 
-    const glslWriter = nzsl.GlslWriter.create();
-    defer glslWriter.release();
+    const params = try nzsl.BackendParameters.init();
+    defer params.deinit();
+    params.setDebugLevel(.full);
 
-    const state = nzsl.WriterStates.create();
-    defer state.release();
+    const writer = try nzsl.GlslWriter.init();
+    defer writer.deinit();
 
-    state.setDebugLevel(.full);
+    const writer_params = try nzsl.GlslWriter.Parameters.init();
+    defer writer_params.deinit();
 
-    const mappings = nzsl.GlslBindingMapping.create();
-    defer mappings.release();
+    const output = try writer.generate(module, params, writer_params);
+    defer output.deinit();
 
-    const output = try glslWriter.generate(mandelbrotModule, mappings, state);
-    defer output.release();
-
-    std.log.debug("Generated code: \n{s}", .{ output.getCode() });
-
+    std.log.debug("Generated code: \n{s}", .{output.getCode()});
 }

@@ -1,17 +1,24 @@
-const cnzsl = @import("nzsl-c.zig");
+const std = @import("std");
+const cnzsl = @cImport({
+    @cInclude("CNZSL/CNZSL.h");
+});
 
-pub const Module = struct {
-    instance: *cnzsl.nzslModule,
+const Self = @This();
 
-    pub fn create() Module {
-        return .{.instance = cnzsl.nzslModuleCreate() orelse unreachable};
-    }
+instance: *cnzsl.nzslModule,
 
-    pub fn release(self: Module) void {
-        cnzsl.nzslModuleDestroy(self.instance);
-    }
+pub fn init() !Self {
+    const cmodule = cnzsl.nzslModuleCreate() orelse return error.NullPointer;
+    return .{
+        .instance = cmodule,
+    };
+}
 
-    pub fn getLastError(self: Module) [*c]const u8 {
-        return cnzsl.nzslModuleGetLastError(self.instance);
-    }
-};
+pub fn deinit(self: Self) void {
+    cnzsl.nzslModuleDestroy(@ptrCast(self.instance));
+}
+
+pub fn getLastError(self: Self) ![]const u8 {
+    const err = cnzsl.nzslModuleGetLastError(@ptrCast(self.instance)) orelse return error.NullPointer;
+    return std.mem.span(err);
+}

@@ -1,107 +1,104 @@
-const cnzsl = @import("nzsl-c.zig");
-const nzsl = @import("lib.zig");
 const std = @import("std");
+const Module = @import("Module.zig");
+const BackendParameters = @import("BackendParameters.zig");
+const ShaderStageType = @import("lib.zig").ShaderStageType;
+const cnzsl = @cImport({
+    @cInclude("CNZSL/CNZSL.h");
+});
 
-pub const ShaderStageType = enum(cnzsl.nzslShaderStageType) {
-    compute = cnzsl.NZSL_STAGE_COMPUTE,
-    fragment = cnzsl.NZSL_STAGE_FRAGMENT,
-    vertex = cnzsl.NZSL_STAGE_VERTEX,
+const Self = @This();
+
+instance: *cnzsl.nzslGlslWriter,
+
+pub fn init() !Self {
+    const cwriter = cnzsl.nzslGlslWriterCreate() orelse return error.NullPointer;
+    return .{
+        .instance = cwriter,
+    };
+}
+
+pub fn deinit(self: Self) void {
+    cnzsl.nzslGlslWriterDestroy(self.instance);
+}
+
+pub fn generate(self: Self, module: Module, backend_parameters: BackendParameters, parameters: Parameters) !Output {
+    const output = cnzsl.nzslGlslWriterGenerate(self.instance, @ptrCast(module.instance), @ptrCast(backend_parameters.instance), @ptrCast(parameters.instance)) orelse return error.FailedToGenerateGlsl;
+    return .{
+        .instance = output,
+    };
+}
+
+pub fn generateStage(self: Self, stage: ShaderStageType, module: Module, backend_parameters: BackendParameters, parameters: Parameters) !Output {
+    const output = cnzsl.nzslGlslWriterGenerateStage(self.instance, @intFromEnum(stage), @ptrCast(module.instance), @ptrCast(backend_parameters.instance), @ptrCast(parameters.instance)) orelse return error.FailedToGenerateGlsl;
+    return .{
+        .instance = output,
+    };
+}
+
+pub fn getLastError(self: Self) ![]const u8 {
+    const err = cnzsl.nzslGlslWriterGetLastError(self.instance) orelse return error.NullPointer;
+    return std.mem.span(err);
+}
+
+pub const Parameters = struct {
+    const InnerSelf = @This();
+
+    instance: *cnzsl.nzslGlslWriterParameters,
+
+    pub fn init() !InnerSelf {
+        const cparameters = cnzsl.nzslGlslWriterParametersCreate() orelse return error.NullPointer;
+        return .{
+            .instance = cparameters,
+        };
+    }
+
+    pub fn deinit(self: InnerSelf) void {
+        cnzsl.nzslGlslWriterParametersDestroy(self.instance);
+    }
+
+    pub fn setBindingMapping(self: InnerSelf, set_index: u32, binding_index: u32, gl_binding: u32) void {
+        cnzsl.nzslGlslWriterParametersSetBindingMapping(self.instance, set_index, binding_index, @intCast(gl_binding));
+    }
+
+    pub fn setPushConstantBinding(self: InnerSelf, gl_binding: u32) void {
+        cnzsl.nzslGlslWriterParametersSetPushConstantBinding(self.instance, @intCast(gl_binding));
+    }
 };
 
-pub const GlslWriter = struct {
-    instance: *cnzsl.nzslGlslWriter,
+pub const Output = struct {
+    const InnerSelf = @This();
 
-    pub fn create() GlslWriter {
-        return .{.instance = cnzsl.nzslGlslWriterCreate() orelse unreachable};
-    }
-
-    pub fn release(self: GlslWriter) void {
-        cnzsl.nzslGlslWriterDestroy(self.instance);
-    }
-
-    pub fn generate(self: GlslWriter, module: nzsl.Module, bindingMapping: GlslBindingMapping, states: nzsl.WriterStates) !GlslOutput {
-        var output: ?*cnzsl.nzslGlslOutput = null;
-
-        output = cnzsl.nzslGlslWriterGenerate(self.instance, module.instance, bindingMapping.instance, states.instance);
-
-        if(output == null) {
-            std.log.err("Failed to generate glsl output: {s}", .{ self.getLastError() });
-
-            return error.FailedToGenerateGlsl;
-        }
-
-        return .{.instance = output orelse unreachable};
-    }
-
-    pub fn generateStage(self: GlslWriter, stage: ShaderStageType, module: nzsl.Module, bindingMapping: GlslBindingMapping, states: nzsl.WriterStates) !GlslOutput {
-        var output: ?*cnzsl.nzslGlslOutput = null;
-
-        output = cnzsl.nzslGlslWriterGenerateStage(@intFromEnum(stage), self.instance, module.instance, bindingMapping.instance, states.instance);
-
-        if(output == null) {
-            std.log.err("Failed to generate glsl output: {s}", .{ self.getLastError() });
-
-            return error.FailedToGenerateGlsl;
-        }
-
-        return .{.instance = output orelse unreachable};
-    }
-
-    pub fn getLastError(self: GlslWriter) [*c]const u8 {
-        return cnzsl.nzslGlslWriterGetLastError(self.instance);
-    }
-};
-
-pub const GlslBindingMapping = struct {
-    instance: *cnzsl.nzslGlslBindingMapping,
-
-    pub fn create() GlslBindingMapping {
-        return .{.instance = cnzsl.nzslGlslBindingMappingCreate() orelse unreachable};
-    }
-
-    pub fn release(self: GlslBindingMapping) void {
-        cnzsl.nzslGlslBindingMappingDestroy(self.instance);
-    }
-
-    pub fn setBinding(self: GlslBindingMapping, setIndex: u32, bindingIndex: u32, glBinding: c_uint) void {
-        cnzsl.nzslGlslBindingMappingSetBinding(self.instance, setIndex, bindingIndex, glBinding);
-    }
-
-};
-
-pub const GlslOutput = struct {
     instance: *cnzsl.nzslGlslOutput,
 
-    pub fn release(self: GlslOutput) void {
+    pub fn deinit(self: InnerSelf) void {
         cnzsl.nzslGlslOutputDestroy(self.instance);
     }
 
-    pub fn getCode(self: GlslOutput) []const u8 {
+    pub fn getCode(self: InnerSelf) []const u8 {
         var size: usize = undefined;
         const code = cnzsl.nzslGlslOutputGetCode(self.instance, &size);
-
         return code[0..size];
     }
 
-    /// Return texture binding in output or -1 if binding doesn't exists
-    pub fn getExplicitTextureBinding(self: GlslOutput, bindingName: [*c]const u8) c_int {
-        return cnzsl.nzslGlslOutputGetExplicitTextureBinding(self.instance, bindingName);
+    pub fn getExplicitTextureBinding(self: InnerSelf, binding_name: [:0]const u8) i32 {
+        const res = cnzsl.nzslGlslOutputGetExplicitTextureBinding(self.instance, binding_name);
+        return if (res != -1) res else error.BindingNameNotFound;
     }
 
-    /// Return uniform binding in output or -1 if binding doesn't exists
-    pub fn getExplicitUniformBlockBinding(self: GlslOutput, bindingName: [*c]const u8) c_int {
-        return cnzsl.nzslGlslOutputGetExplicitUniformBlockBinding(self.instance, bindingName);
+    pub fn getExplicitUniformBlockBinding(self: InnerSelf, binding_name: [:0]const u8) i32 {
+        const res = cnzsl.nzslGlslOutputGetExplicitUniformBlockBinding(self.instance, binding_name);
+        return if (res != -1) res else error.BindingNameNotFound;
     }
 
-    pub fn getUsesDrawParameterBaseInstanceUniform(self: GlslOutput) c_int {
+    pub fn usesDrawParameterBaseInstanceUniform(self: InnerSelf) bool {
         return cnzsl.nzslGlslOutputGetUsesDrawParameterBaseInstanceUniform(self.instance);
     }
 
-    pub fn getUsesDrawParameterBaseVertexUniform(self: GlslOutput) c_int {
+    pub fn usesDrawParameterBaseVertexUniform(self: InnerSelf) bool {
         return cnzsl.nzslGlslOutputGetUsesDrawParameterBaseVertexUniform(self.instance);
     }
 
-    pub fn getUsesDrawParameterDrawIndexUniform(self: GlslOutput) c_int {
+    pub fn usesDrawParameterDrawIndexUniform(self: InnerSelf) bool {
         return cnzsl.nzslGlslOutputGetUsesDrawParameterDrawIndexUniform(self.instance);
     }
 };
