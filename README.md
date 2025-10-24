@@ -1,1 +1,1 @@
-# nzsl-zig
+# NZigSL

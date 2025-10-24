@@ -23,8 +23,11 @@ pub fn hashOption(str: [:0]const u8) !OptionHash {
 }
 
 pub const BackendParameters = @import("BackendParameters.zig");
+pub const Deserializer = @import("Deserializer.zig");
+pub const FilesystemModuleResolver = @import("FilesystemModuleResolver.zig");
 pub const GlslWriter = @import("GlslWriter.zig");
 pub const LangWriter = @import("LangWriter.zig");
 pub const Module = @import("Module.zig");
 pub const parser = @import("parser.zig");
+pub const Serializer = @import("Serializer.zig");
 pub const SpirvWriter = @import("SpirvWriter.zig");
