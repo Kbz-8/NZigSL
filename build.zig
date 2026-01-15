@@ -124,7 +124,7 @@ fn buildNzsl(
     lib.addSystemIncludePath(fmt.path("include"));
     lib.addSystemIncludePath(ordered_map.path("include"));
     lib.addSystemIncludePath(fast_float.path("include"));
-    lib.addSystemIncludePath(lz4.path("include"));
+    lib.addSystemIncludePath(lz4.path("lib"));
 
     const flags = [_][]const u8{
         if (shared) "-DNZSL_DYNAMIC" else "-DNZSL_STATIC",
