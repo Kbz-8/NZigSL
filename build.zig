@@ -46,7 +46,6 @@ pub fn build(b: *Build) !void {
         b.installArtifact(lib);
 
         nzigsl.linkLibrary(lib);
-        docs.linkLibrary(lib);
     }
 
     const run_tests = b.addRunArtifact(mod_tests);
@@ -116,15 +115,15 @@ fn buildNzsl(
         .linkage = if (shared) .dynamic else .static,
     });
 
-    lib.addSystemIncludePath(upstream.path("include"));
-    lib.addSystemIncludePath(upstream.path("src"));
+    lib.root_module.addSystemIncludePath(upstream.path("include"));
+    lib.root_module.addSystemIncludePath(upstream.path("src"));
 
-    lib.addSystemIncludePath(nazaraUtils.path("include"));
-    lib.addSystemIncludePath(frozen.path("include"));
-    lib.addSystemIncludePath(fmt.path("include"));
-    lib.addSystemIncludePath(ordered_map.path("include"));
-    lib.addSystemIncludePath(fast_float.path("include"));
-    lib.addSystemIncludePath(lz4.path("lib"));
+    lib.root_module.addSystemIncludePath(nazaraUtils.path("include"));
+    lib.root_module.addSystemIncludePath(frozen.path("include"));
+    lib.root_module.addSystemIncludePath(fmt.path("include"));
+    lib.root_module.addSystemIncludePath(ordered_map.path("include"));
+    lib.root_module.addSystemIncludePath(fast_float.path("include"));
+    lib.root_module.addSystemIncludePath(lz4.path("lib"));
 
     const flags = [_][]const u8{
         if (shared) "-DNZSL_DYNAMIC" else "-DNZSL_STATIC",
@@ -134,7 +133,7 @@ fn buildNzsl(
         "-DFMT_HEADER_ONLY",
     };
 
-    lib.addCSourceFiles(.{
+    lib.root_module.addCSourceFiles(.{
         .root = .{ .dependency = .{
             .dependency = upstream,
             .sub_path = "",
@@ -143,7 +142,7 @@ fn buildNzsl(
         .flags = &flags,
     });
 
-    lib.addCSourceFiles(.{
+    lib.root_module.addCSourceFiles(.{
         .root = .{ .dependency = .{
             .dependency = lz4,
             .sub_path = "lib",

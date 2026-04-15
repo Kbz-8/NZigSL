@@ -33,7 +33,7 @@ pub const Serializer = @import("Serializer.zig");
 pub const SpirvWriter = @import("SpirvWriter.zig");
 
 test {
-    std.testing.refAllDeclsRecursive(@This());
+    std.testing.refAllDecls(@This());
 }
 
 test "hashOption" {
