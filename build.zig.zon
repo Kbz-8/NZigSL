@@ -1,18 +1,18 @@
 .{
     .name = .NZSL,
-    .version = "1.1.2",
+    .version = "1.1.4",
     .fingerprint = 0xd558585854524c37,
     .minimum_zig_version = "0.16.0",
 
     .dependencies = .{
         .nzsl = .{
-            .url = "git+https://github.com/NazaraEngine/ShaderLang#96de6b0e3f73d223aa7a01d1892bb7bb9dccdc36",
-            .hash = "N-V-__8AAJeUIwAhNa90q_cEWtSm4VFvyZ5TyNfoNsmpwpA5",
+            .url = "git+https://github.com/NazaraEngine/ShaderLang?ref=v1.1.4#ced427274ed4e80554daff047839665a3237b131",
+            .hash = "N-V-__8AAOS-IwDUplVDVpNj6L7PcjoYQIwbrvNW98--mBWp",
             .lazy = true,
         },
         .NazaraUtils = .{
-            .url = "git+https://github.com/NazaraEngine/NazaraUtils?ref=v1.0.0#d2f5d902ed9ac2bc8e26a015b1ff02edc5e3b550",
-            .hash = "N-V-__8AAJuBBgAWrip3l4mh6_ZGHqqhMM71rYLtPorOOwyf",
+            .url = "git+https://github.com/NazaraEngine/NazaraUtils?ref=v1.1.2#5cbdee00c9fb7b305884ae68bc997974d07e6d57",
+            .hash = "N-V-__8AAHCyBgD4cFhjGcZ-_JP7uLDL2HTgV2Wf3xcJl-Ce",
             .lazy = true,
         },
         .frozen = .{
