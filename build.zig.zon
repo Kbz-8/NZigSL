@@ -6,8 +6,8 @@
 
     .dependencies = .{
         .nzsl = .{
-            .url = "git+https://github.com/NazaraEngine/ShaderLang?ref=v1.1.4#ced427274ed4e80554daff047839665a3237b131",
-            .hash = "N-V-__8AAOS-IwDUplVDVpNj6L7PcjoYQIwbrvNW98--mBWp",
+            .url = "git+https://github.com/NazaraEngine/ShaderLang?ref=v1.1.5#0aeeca310fd68db434b9f8d043072ae17f664f02",
+            .hash = "N-V-__8AAHe9JACcmllRbyA_k63GzdLrsIW-d9_xsDZe1LTh",
             .lazy = true,
         },
         .NazaraUtils = .{
