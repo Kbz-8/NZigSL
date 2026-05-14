@@ -205,6 +205,7 @@ const nzsl_source_files = [_][]const u8{
     "src/NZSL/Ast/Transformations/LoopUnrollTransformer.cpp",
     "src/NZSL/Ast/Transformations/MatrixTransformer.cpp",
     "src/NZSL/Ast/Transformations/ResolveTransformer.cpp",
+    "src/NZSL/Ast/Transformations/ReturningStatementTransformer.cpp",
     "src/NZSL/Ast/Transformations/StructAssignmentTransformer.cpp",
     "src/NZSL/Ast/Transformations/SwizzleTransformer.cpp",
     "src/NZSL/Ast/Transformations/TransformerContext.cpp",
