@@ -2,9 +2,7 @@ const std = @import("std");
 const Module = @import("Module.zig");
 const BackendParameters = @import("BackendParameters.zig");
 const ShaderStageType = @import("lib.zig").ShaderStageType;
-const cnzsl = @cImport({
-    @cInclude("CNZSL/CNZSL.h");
-});
+const cnzsl = @import("cnzsl");
 
 const Self = @This();
 
@@ -29,7 +27,7 @@ pub fn generate(self: Self, module: Module, backend_parameters: BackendParameter
 }
 
 pub fn generateStage(self: Self, stage: ShaderStageType, module: Module, backend_parameters: BackendParameters, parameters: Parameters) !Output {
-    const output = cnzsl.nzslGlslWriterGenerateStage(self.instance, @intFromEnum(stage), @ptrCast(module.instance), @ptrCast(backend_parameters.instance), @ptrCast(parameters.instance)) orelse return error.FailedToGenerateGlsl;
+    const output = cnzsl.nzslGlslWriterGenerateStage(self.instance, @backingInt(stage), @ptrCast(module.instance), @ptrCast(backend_parameters.instance), @ptrCast(parameters.instance)) orelse return error.FailedToGenerateGlsl;
     return .{
         .instance = output,
     };

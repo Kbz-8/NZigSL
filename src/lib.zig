@@ -1,7 +1,5 @@
 const std = @import("std");
-const cnzsl = @cImport({
-    @cInclude("CNZSL/CNZSL.h");
-});
+const cnzsl = @import("cnzsl");
 
 pub const ShaderStageType = enum(cnzsl.nzslShaderStageType) {
     compute = cnzsl.NZSL_STAGE_COMPUTE,

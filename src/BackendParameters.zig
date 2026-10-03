@@ -2,9 +2,7 @@ const std = @import("std");
 const DebugLevel = @import("lib.zig").DebugLevel;
 const OptionHash = @import("lib.zig").OptionHash;
 const FilesystemModuleResolver = @import("lib.zig").FilesystemModuleResolver;
-const cnzsl = @cImport({
-    @cInclude("CNZSL/CNZSL.h");
-});
+const cnzsl = @import("cnzsl");
 
 const Self = @This();
 
@@ -42,7 +40,7 @@ pub fn enableValidation(self: Self, enable: bool) void {
 }
 
 pub fn setDebugLevel(self: Self, debug_level: DebugLevel) void {
-    cnzsl.nzslBackendParametersSetDebugLevel(self.instance, @intFromEnum(debug_level));
+    cnzsl.nzslBackendParametersSetDebugLevel(self.instance, @backingInt(debug_level));
 }
 
 pub fn SetModuleResolverFilesystem(self: Self, filesystem_module_resolver: FilesystemModuleResolver) void {
@@ -104,7 +102,7 @@ test "valid setOption" {
             if (i == 1) {
                 try params.setOption(0, value);
             } else {
-                const array = [_]T{value} ** i;
+                const array: [i]T = @splat(value);
                 const vector: @Vector(i, T) = array;
                 try params.setOption(0, vector);
                 try params.setOption(0, array);

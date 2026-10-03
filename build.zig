@@ -13,10 +13,29 @@ pub fn build(b: *Build) !void {
 
     const shared = b.option(bool, "shared", "Build shared library instead of static") orelse false;
 
+    const upstream = b.lazyDependency("nzsl", .{}) orelse return error.FailedToFetchDep;
+    const nazaraUtils = b.lazyDependency("NazaraUtils", .{}) orelse return error.FailedToFetchDep;
+    const frozen = b.lazyDependency("frozen", .{}) orelse return error.FailedToFetchDep;
+    const fmt = b.lazyDependency("fmt", .{}) orelse return error.FailedToFetchDep;
+    const ordered_map = b.lazyDependency("ordered_map", .{}) orelse return error.FailedToFetchDep;
+    const fast_float = b.lazyDependency("fast_float", .{}) orelse return error.FailedToFetchDep;
+    const lz4 = b.lazyDependency("lz4", .{}) orelse return error.FailedToFetchDep;
+
+    const c_includes = b.addTranslateC(.{
+        .root_source_file = b.path("src/cIncludes.h"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    c_includes.addIncludePath(upstream.path("include"));
+
     const nzigsl = b.addModule("nzigsl", .{
         .target = target,
         .optimize = optimize,
         .root_source_file = b.path("src/lib.zig"),
+        .imports = &.{
+            .{ .name = "cnzsl", .module = c_includes.createModule() },
+        },
     });
 
     const docs = b.addLibrary(.{
@@ -32,21 +51,11 @@ pub fn build(b: *Build) !void {
     const config = b.addOptions();
     nzigsl.addOptions("config", config);
 
-    nzsldep: {
-        const upstream = b.lazyDependency("nzsl", .{}) orelse break :nzsldep;
-        const nazaraUtils = b.lazyDependency("NazaraUtils", .{}) orelse break :nzsldep;
-        const frozen = b.lazyDependency("frozen", .{}) orelse break :nzsldep;
-        const fmt = b.lazyDependency("fmt", .{}) orelse break :nzsldep;
-        const ordered_map = b.lazyDependency("ordered_map", .{}) orelse break :nzsldep;
-        const fast_float = b.lazyDependency("fast_float", .{}) orelse break :nzsldep;
-        const lz4 = b.lazyDependency("lz4", .{}) orelse break :nzsldep;
+    const lib = try buildNzsl(b, target, optimize, upstream, nazaraUtils, frozen, fmt, ordered_map, fast_float, lz4, shared);
 
-        const lib = try buildNzsl(b, target, optimize, upstream, nazaraUtils, frozen, fmt, ordered_map, fast_float, lz4, shared);
+    b.installArtifact(lib);
 
-        b.installArtifact(lib);
-
-        nzigsl.linkLibrary(lib);
-    }
+    nzigsl.linkLibrary(lib);
 
     const run_tests = b.addRunArtifact(mod_tests);
     const test_step = b.step("test", "Run tests");
@@ -72,8 +81,8 @@ pub fn build(b: *Build) !void {
         exe_step.dependOn(&artifact.step);
 
         const run_cmd = b.addRunArtifact(exe);
+        run_cmd.addPassthruArgs();
         run_cmd.step.dependOn(b.getInstallStep());
-        if (b.args) |args| run_cmd.addArgs(args);
 
         const run_step = b.step(b.fmt("run-example-{s}", .{example[0]}), b.fmt("Run {s} example", .{example[0]}));
         run_step.dependOn(&run_cmd.step);

@@ -1,7 +1,5 @@
 const std = @import("std");
-const cnzsl = @cImport({
-    @cInclude("CNZSL/CNZSL.h");
-});
+const cnzsl = @import("cnzsl");
 
 const Self = @This();
 

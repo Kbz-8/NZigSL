@@ -1,7 +1,5 @@
 const std = @import("std");
-const cnzsl = @cImport({
-    @cInclude("CNZSL/CNZSL.h");
-});
+const cnzsl = @import("cnzsl");
 const Module = @import("Module.zig");
 
 pub fn parseSource(source: []const u8) !Module {

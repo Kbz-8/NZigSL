@@ -1,13 +1,13 @@
 .{
     .name = .NZSL,
-    .version = "1.1.5",
+    .version = "1.1.6",
     .fingerprint = 0xd558585854524c37,
-    .minimum_zig_version = "0.16.0",
+    .minimum_zig_version = "0.17.0",
 
     .dependencies = .{
         .nzsl = .{
-            .url = "git+https://github.com/NazaraEngine/ShaderLang?ref=v1.1.5#0aeeca310fd68db434b9f8d043072ae17f664f02",
-            .hash = "N-V-__8AAHe9JACcmllRbyA_k63GzdLrsIW-d9_xsDZe1LTh",
+            .url = "git+https://github.com/NazaraEngine/ShaderLang?ref=v1.1.6#ac53473ee14493866e7100aea468d4538358e1b0",
+            .hash = "N-V-__8AAEZcJQCzsaRNsL-9_pHlB6wzAhEsDbejU-i2x0FA",
             .lazy = true,
         },
         .NazaraUtils = .{
